@@ -12,7 +12,7 @@ Currently, _QUAlloc_ has a stand-alone modelling configuration with user-defined
 
 The main output files from _QUAlloc_ are the water withdrawals and allocation volumes per water source (i.e., surface water, renewable groundwater and non-renewable groundwater) and per sector (i.e., domestic, irrigation, livestock, manufacturing and thermoelectric).
 
-An self-contained example for the Rhine-Meuse basin can be found in https://doi.org/10.5281/zenodo.14511236.
+A self-contained example for the Rhine-Meuse basin can be found in https://doi.org/10.5281/zenodo.14511236.
 
 **Contact (QUAlloc)**: Gabriel A. Cárdenas B. (g.a.cardenasbelleza@uu.nl)
 
