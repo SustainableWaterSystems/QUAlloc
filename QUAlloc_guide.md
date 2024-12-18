@@ -54,3 +54,28 @@ Navigate in the command prompt to the directory where the example was downloaded
 You can start a QUAlloc run using the following command:
 
 `python QUAlloc_model/qualloc_runner.py config/<cfg_configuration_file>.cfg`
+
+The run time for this example (Rhine basin, one year at a monthly scale) will take 1 minute. 
+
+
+## QUAlloc outputs
+
+Output datasets are reported for data type, sector nam and source type as follows:
+
+`<data_type>_<sector_name>_allocated_to_<source_type>_<time-step>.nc`
+
+`<data_type>`
+  - "withdrawal": refers to the water that is withdrawn at a water source level to satisfy the demands within an allocation zone
+  - "demand": refers to the withdrawn water that is supplied to each location (cell) where there are demands to satisfy
+
+`<sector_name>`
+  - "domestic"
+  - "irrigation"
+  - "livestock"
+  - "manufacture"
+  - "thermoelectric"
+
+`<source_type>`
+  - "renewable_surfacewater": refers to water obtained from the surface water system components (e.g., direct runoff, base flow, interflow, etc.)
+  - "renewable_groundwater": refers to water obtained from aquifers that are recharged by percolation from the upper soil layers
+  - "nonrenewable_groundwater": refers to water obtained from aquifers not replenished on a human time scale
