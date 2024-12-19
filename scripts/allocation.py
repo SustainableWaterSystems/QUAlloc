@@ -357,19 +357,19 @@ def allocate_demand_to_availability( \
                            '=' * len('statistics:'), \
                            '%20s - count: %6d - avg.: %10g - min: %10g - max: %10g' % \
                                ('demand', demand_stats['count'], demand_stats['average'], \
-                                demand_stats['amin'], demand_stats['amax']), \
+                                demand_stats['min'], demand_stats['max']), \
                            '%20s - count: %6d - avg.: %10g - min: %10g - max: %10g' % \
                                ('met demand', met_demand_stats['count'], met_demand_stats['average'], \
-                                met_demand_stats['amin'], demand_stats['amax']), \
+                                met_demand_stats['min'], demand_stats['max']), \
                            '%20s - count: %6d - avg.: %10g - min: %10g - max: %10g' % \
                                ('unmet demand', unmet_demand_stats['count'], unmet_demand_stats['average'], \
-                                unmet_demand_stats['amin'], unmet_demand_stats['amax']), \
+                                unmet_demand_stats['min'], unmet_demand_stats['max']), \
                            '%20s - count: %6d - avg.: %10g - min: %10g - max: %10g' % \
                                ('alloc. demand', total_alloc_demand_stats['count'], total_alloc_demand_stats['average'], \
-                                total_alloc_demand_stats['amin'], total_alloc_demand_stats['amax']), \
+                                total_alloc_demand_stats['min'], total_alloc_demand_stats['max']), \
                            '%20s - count: %6d - avg.: %10g - min: %10g - max: %10g' % \
                                ('total withdrawal', total_withdrawal_stats['count'], total_withdrawal_stats['average'], \
-                                total_withdrawal_stats['amin'], total_withdrawal_stats['amax']), \
+                                total_withdrawal_stats['min'], total_withdrawal_stats['max']), \
                             ))
                                
     # return the output
@@ -710,19 +710,19 @@ def allocate_demand_to_availability_with_options(\
                            '=' * len('statistics:'), \
                            '%-20s - count: %6d - avg.: %10g - min: %10g - max: %10g' % \
                                ('demand', demand_stats['count'], demand_stats['average'], \
-                                demand_stats['amin'], demand_stats['amax']), \
+                                demand_stats['min'], demand_stats['max']), \
                            '%-20s - count: %6d - avg.: %10g - min: %10g - max: %10g' % \
                                ('met demand', met_demand_stats['count'], met_demand_stats['average'], \
-                                met_demand_stats['amin'], met_demand_stats['amax']), \
+                                met_demand_stats['min'], met_demand_stats['max']), \
                            '%-20s - count: %6d - avg.: %10g - min: %10g - max: %10g' % \
                                ('unmet demand', unmet_demand_stats['count'], unmet_demand_stats['average'], \
-                                unmet_demand_stats['amin'], unmet_demand_stats['amax']), \
+                                unmet_demand_stats['min'], unmet_demand_stats['max']), \
                            '%-20s - count: %6d - avg.: %10g - min: %10g - max: %10g' % \
                                ('alloc. demand', total_alloc_demand_stats['count'], total_alloc_demand_stats['average'], \
-                                total_alloc_demand_stats['amin'], total_alloc_demand_stats['amax']), \
+                                total_alloc_demand_stats['min'], total_alloc_demand_stats['max']), \
                            '%-20s - count: %6d - avg.: %10g - min: %10g - max: %10g' % \
                                ('total withdrawal', total_withdrawal_stats['count'], total_withdrawal_stats['average'], \
-                                total_withdrawal_stats['amin'], total_withdrawal_stats['amax']), \
+                                total_withdrawal_stats['min'], total_withdrawal_stats['max']), \
                             ))
     
     # all options processed, return the output
@@ -975,10 +975,10 @@ def allocate_demand_to_withdrawals(withdrawal_names, \
                                 '=' * len('statistics - %s demand:' % sector_name), \
                                      '-%60s - count: %6d - avg.: %10g - min: %10g - max: %10g' % \
                                          ('demand', demand_stats['count'], demand_stats['average'], \
-                                         demand_stats['amin'], demand_stats['amax']), \
+                                         demand_stats['min'], demand_stats['max']), \
                                      '-%60s - count: %6d - avg.: %10g - min: %10g - max: %10g' % \
                                          ('met demand', met_demand_stats['count'], met_demand_stats['average'], \
-                                         met_demand_stats['amin'], met_demand_stats['amax'])))
+                                         met_demand_stats['min'], met_demand_stats['max'])))
         
         # get the allocated supply and demand per sector
         for withdrawal_name in withdrawal_names:
@@ -995,10 +995,10 @@ def allocate_demand_to_withdrawals(withdrawal_names, \
                                        (message_str, \
                                         '%-60s - count: %6d - avg.: %10g - min: %10g - max: %10g' % \
                                             ('%s - %s' % ('supply', key_str), withdrawal_stats['count'], withdrawal_stats['average'], \
-                                            withdrawal_stats['amin'], withdrawal_stats['amax']), \
+                                            withdrawal_stats['min'], withdrawal_stats['max']), \
                                         '%-60s - count: %6d - avg.: %10g - min: %10g - max: %10g' % \
                                             ('%s - %s' % ('demand', key_str), demand_stats['count'], demand_stats['average'], \
-                                            demand_stats['amin'], demand_stats['amax'])))
+                                            demand_stats['min'], demand_stats['max'])))
     
     # overall supply
     message_str = str.join('\n', \
@@ -1022,11 +1022,11 @@ def allocate_demand_to_withdrawals(withdrawal_names, \
                               '%-60s - count: %6d - avg.: %10g - min: %10g - max: %10g' % \
                                   ('total supply %s - %s - %s' % (withdrawal_name, source_name, sector_name),  \
                                   total_withdrawal_stats['count'], total_withdrawal_stats['average'], \
-                                  total_withdrawal_stats['amin'], total_withdrawal_stats['amax']), \
+                                  total_withdrawal_stats['min'], total_withdrawal_stats['max']), \
                               '%-60s - count: %6d - avg.: %10g - min: %10g - max: %10g' % \
                                   ('remaining supply %s - %s - %s' % (withdrawal_name, source_name, sector_name), \
                                   remaining_withdrawal_stats['count'], remaining_withdrawal_stats['average'], \
-                                  remaining_withdrawal_stats['amin'], remaining_withdrawal_stats['amax'])))
+                                  remaining_withdrawal_stats['min'], remaining_withdrawal_stats['max'])))
     
     # add a blank line at last
     message_str = str.join('\n', \
