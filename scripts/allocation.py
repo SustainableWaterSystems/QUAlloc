@@ -1,4 +1,4 @@
-# allocation module of the pcrLite model
+# allocation module of the QUAlloc model
 
 # modules
 import sys
