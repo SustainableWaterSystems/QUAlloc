@@ -74,7 +74,7 @@ if len(critical_improvements) > 0:
           critical_improvements)
 
 if len(development) > 0:
-    print ('Ongoing: \n%s' % development)
+    print('Ongoing: \n%s' % development)
 
 if len(critical_improvements) > 0:
     sys.exit()
@@ -149,7 +149,8 @@ with the years changed accordingly.
         seq_type = False
         
     # and check on the data type
-    assert isinstance(new_dates[0], datetime.datetime), 'dates have not the correct format'
+    if not isinstance(new_dates[0], datetime.datetime):
+        'dates have not the correct datetime datetime format'
     
     # get the new dates
     date_offset = datetime.datetime(new_year, date.month, date.day) - \
@@ -191,12 +192,28 @@ This function reproduces the date2index function of the netCDF4 package but
 circumvents the problem that the original function cannot read from a standard dictionary.
 
 '''
-
-    #-create array with time_delta objects and indices
+    
+    # create array with time_delta objects and indices
     time_delta = dates.copy()
+    
+    # check on the type of time_delta
+    if not isinstance(dates[0], type(date)):
+        for ix in range(len(time_delta)):
+            # update the date
+            time_delta[ix] = datetime.datetime(time_delta[ix].year, \
+                                               time_delta[ix].month, \
+                                               time_delta[ix].day, \
+                                               time_delta[ix].hour, \
+                                               time_delta[ix].minute, \
+                                               time_delta[ix].second, \
+                                               time_delta[ix].microsecond)
     time_delta = time_delta - date
     date_index = np.arange(time_delta.size)
-
+    
+    # masked array operation for python 3.x and higher
+    if isinstance(time_delta, np.ma.core.MaskedArray):
+        time_delta = np.array(time_delta.tolist())
+    
     #-find zero value
     if np.size(dates[time_delta == datetime.timedelta(0)]) > 0 and \
             not substituted_dates:
@@ -227,7 +244,7 @@ circumvents the problem that the original function cannot read from a standard d
         return np.arange(dates.size)[time_delta == time_delta.min()][0]
     
     else:
-        sys.exit('index date_selection_methodion method %s is not allowed or does not yield a result' % date_selection_method)
+        sys.exit('index date_selection_method %s is not allowed or does not yield a result' % date_selection_method)
 
 def match_date_in_dates(date, dates, date_selection_method = 'exact'):
 
@@ -1180,11 +1197,11 @@ depending on the type of match specified.
        
         # if it is a timed variable, then get the position and band
         if self.variables[ncfilename][variablename]['timed_variable']:
-
+            
             # get the name of the variable representing the time
             time_dimension = self.time_dimension[ncfilename]
 
-           # get the date index possibly from the substituted dates
+            # get the date index possibly from the substituted dates
             dates = self.dimensions[ncfilename][time_dimension]['values'].copy()
 
             # initialize an empty message_str
@@ -1202,7 +1219,7 @@ depending on the type of match specified.
                     date_selection_method = 'exact'
 
                 else:
-
+                    
                     message_str = 'for variable %s, date %s is not encountered in %s' % \
                                 (variablename, date, ncfilename) 
 
@@ -1503,7 +1520,7 @@ output netCDF files.
 
         # netCDF attributes
         nc_default_attributes = { \
-                                 'title'        : 'pcrLite run for %s' % \
+                                 'title'        : 'QUAlloc run for %s' % \
                                                   model_configuration.general['scenarioname'], \
                                  'history'      : 'Created on %s' % \
                                                    model_configuration._timestamp_str, \
