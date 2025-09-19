@@ -1,4 +1,4 @@
-# groundwater module of the pcrLite model
+# groundwater module of the QUAlloc model
 
 # modules
 import logging
@@ -29,7 +29,7 @@ def compute_daily_base_flow(alpha, base_flow, recharge):
 class groundwater(object):
 
     """
-    groundwater: class that holds the groundwater component of the pcrLite
+    groundwater: class that holds the groundwater component of the QUAlloc
                  model
     
     initial states and fluxes:
@@ -68,7 +68,7 @@ class groundwater(object):
         return None
     
     def __str__(self):
-        return 'this is the groundwater module of the pcrLite model.'
+        return 'this is the groundwater module of the QUAlloc model.'
     
     def get_storage(self, \
                      recharge, \
@@ -77,7 +77,7 @@ class groundwater(object):
                      date):
         
         '''
-        get_storage          : function to calcualte the groundwater storage based
+        get_storage          : function to calculate the groundwater storage based
                                on the total recharge [ and the potential withdrawal ]
                                for the given time step length in days
         
@@ -109,7 +109,7 @@ class groundwater(object):
         self.total_base_flow = pcr.ifthen(pcr.defined(self.alpha), \
                                          pcr.scalar(0))
         
-        # update the total base flow at the endof the period
+        # update the total base flow at the end of the period
         # (units: m/period)
         for day in range(time_step_length):
             self.base_flow = pcr.max(0, \
