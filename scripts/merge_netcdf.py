@@ -76,11 +76,15 @@ def netcdfList(inputDir):
         ll.append(ncFile.split('/')[-1])
     return ll
 
-def ncFileNameDict(inputDirRoot, areas, ncFileName):
+def ncFileNameDict(inputDirRoot, areas, ncFileName, fileType):
     '''creates a dictionary of subdomains of pcrglob model outut'''
     netcdfInputDict = {}
+    folder = 'states' if fileType == 'outStates' else 'netcdf'
     for key in range(1, len(areas)+1, 1):
-        value = os.path.join(inputDirRoot, areas[key-1], 'netcdf', ncFileName)
+        if fileType == 'outWaterGap':
+            value = os.path.join(inputDirRoot, areas[key-1], folder, 'ws', ncFileName)
+        else:
+            value = os.path.join(inputDirRoot, areas[key-1], folder, ncFileName)
         netcdfInputDict[key] = value
     return netcdfInputDict
 
@@ -100,8 +104,11 @@ def mergeNetCDF(inputTuple):
     print('combining files for %s'%ncName)
     scriptStartTime = tm.time()
     
+    # - option to define if files are outputs or states
+    fileType     = inputTuple[12]
+    
     # - dictionary holding netCDFInput
-    netCDFInput  = ncFileNameDict(inputDirRoot, areas, ncName)
+    netCDFInput  = ncFileNameDict(inputDirRoot, areas, ncName, fileType)
     
     # - netDCF output file name
     netCDFOutput = outputDir + "/" + ncName.split(".")[0] + "_" + startDate + "_to_" + endDate + ".nc"
@@ -117,6 +124,7 @@ def mergeNetCDF(inputTuple):
     #~ using_zlib = False               # I decide not to compress (so that we can I analyze it quickly). 
     using_zlib = inputTuple[10]
     if using_zlib == "True": using_zlib = True
+    
     
     #-set dimensions, attributes, and dimensions per netCDF input data set
     # and retrieve the resolution and definition of coordinates and calendar
@@ -176,8 +184,8 @@ def mergeNetCDF(inputTuple):
             # make sure that datetime_range values always at the last day of the year:
             for i in range(0, len(datetime_range)):
                 year_used  = datetime_range[i].year
-                month_used = 12
-                day_used   = 31
+                month_used = 6
+                day_used   = 16
                 datetime_range[i] = datetime.datetime(int(year_used), int(month_used), int(day_used), 0)
         
         if timeStepType == "single":
@@ -244,8 +252,12 @@ def mergeNetCDF(inputTuple):
                 rootgrp.close()
                 sys.exit('variables are incompatible')
         #-Missing Value
-        MV = rootgrp.variables[key]._FillValue
-        MV = -999.9000244140625
+        using_MV = inputTuple[11]
+        if using_MV == "True": using_MV = True
+        if using_MV == True:
+            MV = -999.9000244140625
+        else:
+            MV = rootgrp.variables[key]._FillValue
         varUnits = rootgrp.variables[variableName].units
         #-close file 
         rootgrp.close()
@@ -430,6 +442,9 @@ netcdfList = list(set(netcdfList.split(",")))
 #if file_type == "outAnnuaMaxNC": netcdfList = ['%s_annuaMax_output.nc'%var for var in netcdfList]
 
 if file_type == "outMonthTotNC": netcdfList = ['%s_monthly_tot.nc'%var for var in netcdfList]
+if file_type == "outMonthAvgNC": netcdfList = ['%s_monthly_avg.nc'%var for var in netcdfList]
+if file_type == "outStates":     netcdfList = ['%s.nc'%var for var in netcdfList]
+if file_type == "outWaterGap":   netcdfList = ['%s.nc'%var for var in netcdfList]
 
 # netcdf format and zlib option:
 ncFormat   = str(sys.argv[7])
@@ -462,12 +477,14 @@ if sys.argv[11] == "defined":
     lonMax = xmax - float(sys.argv[12]) / (2. * 3600.)
     latMax = ymax - float(sys.argv[12]) / (2. * 3600.)
 
+# define missing value (MV)
+using_MV = str(sys.argv[12])
 # for testing, we use only a single core
-#mergeNetCDF((netcdfList[0], latMin, latMax, lonMin, lonMax, deltaLat, deltaLon, startDate, endDate, ncFormat, using_zlib))
+#mergeNetCDF((netcdfList[0], latMin, latMax, lonMin, lonMax, deltaLat, deltaLon, startDate, endDate, ncFormat, using_zlib, using_MV, file_type))
 
 ll = []
 for ncName in netcdfList:
-    ll.append((ncName, latMin, latMax, lonMin, lonMax, deltaLat, deltaLon, startDate, endDate, ncFormat, using_zlib))
+    ll.append((ncName, latMin, latMax, lonMin, lonMax, deltaLat, deltaLon, startDate, endDate, ncFormat, using_zlib, using_MV, file_type))
 pool = Pool(processes = ncores)    # start "ncores" of worker processes
 pool.map(mergeNetCDF, ll)          # multicore processing
 
