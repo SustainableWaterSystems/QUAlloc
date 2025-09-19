@@ -119,7 +119,7 @@ the CALEROS model.
         object.__init__(self)
 
         # echo message to screen
-        message_str = '\n%s\nInitializing the pcrLite model run\n%s\n' % \
+        message_str = '\n%s\nInitializing the QUAlloc model run\n%s\n' % \
             ('=' * 80, '=' * 80)
         print (message_str)
 
