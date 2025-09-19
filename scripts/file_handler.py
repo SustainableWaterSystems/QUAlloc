@@ -261,7 +261,6 @@ given date. This may concern spatial information or single entries.
                             non-spatial.
 
 '''
-
     # initialize var_out as NoneType
     var_out = None
 
@@ -316,7 +315,7 @@ given date. This may concern spatial information or single entries.
         resample_method = resample_methods[datatype_str]
         
         
-        print(filename, fits_extent)
+        print(f'{filename} (fits extent: {fits_extent})')
         
         
         # read in the data
