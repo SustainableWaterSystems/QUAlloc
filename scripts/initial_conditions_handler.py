@@ -155,38 +155,38 @@ appropriate key and value pairs.
 
         # process if this is a dictionary
         if isinstance(section_info, dict) and not section_name in sections_to_exclude:
-
+            
             # get the key value pair and process if it is identified as an
             # initial setting
             for key, entry in section_info.items():
-
+                
                 # check if an initial conditions is specified
                 if len(key) > 4:
-
+                    
                     # get suffix and variable name
                     suffix = key[-4:]
                     if suffix in ini_identifiers:
-
+                        
                         variablename = key[:-4]
-
+                        
                         # if not included, add the section name to the
                         # initial condtions as an empty dictionary
                         if section_name not in initial_conditions.keys():
                             initial_conditions[section_name] = {}
-
+                        
                         # next, decide on the processing of the data
                         timed_netcdf, nc_dates = test_timed_netcdf(entry, model_configuration.inputpath)
-
+                        
                         if len(nc_dates) == 0: nc_dates = [date]
-
-                        # add a single field or a time series                        
+                        
+                        # add a single field or a time series
                         if  timed_netcdf:
- 
+                            
                             # initialize the initial conditions as an empty dict,
                             # add the dates and the corresponding value
-
+                            
                             initial_conditions[section_name][variablename] = {}
-
+                            
                             for nc_date in nc_dates:
                                 value = read_file_entry( \
                                         filename                = entry, \
@@ -195,19 +195,21 @@ appropriate key and value pairs.
                                         clone_attributes        = model_configuration.clone_attributes, \
                                         date                    = nc_date, \
                                         date_selection_method   = 'exact', \
+                                        allow_year_substitution = True, \
                                         )
- 
+                                 
                                 initial_conditions[section_name][variablename][nc_date] = value
-    
+                        
                         else:
-
-                            date_selection_method = 'before'                            
-
-                            if nc_dates[-1] >= date: 
+                            
+                            date_selection_method   = 'before'
+                            allow_year_substitution = True
+                            
+                            if nc_dates[-1] >= date:
                                 nc_date = nc_dates[-1]
                             else:
-                                nc_date= date
- 
+                                nc_date = date
+                            
                             # get the value from the provided entry
                             value = read_file_entry( \
                                     filename                = entry, \
@@ -216,10 +218,11 @@ appropriate key and value pairs.
                                     clone_attributes        = model_configuration.clone_attributes, \
                                     date                    = nc_date, \
                                     date_selection_method   = date_selection_method, \
+                                    allow_year_substitution = allow_year_substitution, \
                                     )
                             # next, add the value under the reduced key
                             initial_conditions[section_name][variablename] = value
- 
+                         
                         # log message
                         if isinstance(initial_conditions[section_name][variablename], pcrFieldType) or \
                                       isinstance(initial_conditions[section_name][variablename], dict):
