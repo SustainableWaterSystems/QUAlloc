@@ -1526,27 +1526,6 @@ See doc string of class for detailed info.
                              self.potential_renewable_withdrawal['groundwater'] + \
                              sum_list(list(unmet_demand_per_sector.values()))
         
-        
-        
-        #if date.year == 2018 and date.month == 3:
-        #    dt = f'{str(date.year)[2:]}-{str(date.month).zfill(2)}'
-        #    pcr.report(self.total_gross_demand, f'{path}/{dt}_total_gross_demand.map')
-        #    pcr.report(self.potential_renewable_withdrawal['groundwater'], f'{path}/{dt}_potential_renewable_withdrawal_groundwater.map')
-        #    pcr.report(self.potential_renewable_withdrawal['surfacewater'], f'{path}/{dt}_potential_renewable_withdrawal_surfacewater.map')
-        #    pcr.report(availability['surfacewater'], f'{path}/{dt}_longterm_available_surfacewater.map')
-        #    pcr.report(availability['groundwater'],  f'{path}/{dt}_longterm_available_groundwater.map')
-        #    pcr.report(sum_list(list(unmet_demand_per_sector.values())), f'{path}/{dt}_unmet_demand.map')
-        #    pcr.report(self.groundwater_potential_estimated_withdrawal, f'{path}/{dt}_groundwater_potential_estimated_withdrawal.map')
-        #    
-        #    #pcr.aguila(self.total_gross_demand, \
-        #    #           self.potential_renewable_withdrawal['groundwater'], \
-        #    #           sum_list(list(unmet_demand_per_sector.values())), \
-        #    #           self.potential_renewable_withdrawal['surfacewater'], \
-        #    #           self.groundwater_potential_estimated_withdrawal, \
-        #    #           )
-        #    pietje
-        
-        
         # log the message
         logger.info(message_str)
         
@@ -2764,3 +2743,4 @@ See doc string of class for detailed info.
         return state_info
 
 # ///  end of the water management class ///
+
