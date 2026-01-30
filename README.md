@@ -6,10 +6,6 @@ _QUAlloc_ considers the changing of long-term water availability and water quali
 
 _QUAlloc_ is built up on the global hydrological model PCR-GLOBWB2 (Sutanudjaja et al., 2018; https://github.com/UU-Hydro/PCR-GLOBWB_model) and the global surface water quality model DynQual (Jones et al., 2023; https://github.com/SustainableWaterSystems/DYNQUAL).
 
-Currently, _QUAlloc_ has a stand-alone modelling configuration with user-defined water demands, requiring hydrological and water quality input data. The model input files are:
-- **water availability** (_obtained from PCR-GLOBWB2_): discharge, total runoff, direct runoff, interflow, baseflow, channel storage, groundwater storage, groundwater recharge and returns flow.
-- **water quality** (_obtained from DynQual_): surface water temperature, biochemical oxygen demand, total dissolved solids, faecal coliforms.
-
 The main output files from _QUAlloc_ are the water withdrawals and allocation volumes per water source (i.e., surface water, renewable groundwater and non-renewable groundwater) and per sector (i.e., domestic, irrigation, livestock, manufacturing and thermoelectric).
 
 A self-contained example for the Rhine-Meuse basin can be found in https://doi.org/10.5281/zenodo.14511236.
