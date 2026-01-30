@@ -6,14 +6,17 @@
 ###########
 #-standard modules
 import os, sys
-
 import logging
-import qualloc_variable_list as variable_attr
-
 import pcraster as pcr
 
-from netCDF_recipes import netCDF_output_handler
-from allocation import get_key
+try:
+    from . import qualloc_variable_list as variable_attr
+    from .netCDF_recipes import netCDF_output_handler
+    from .allocation import get_key
+except:
+    import qualloc_variable_list as variable_attr
+    from netCDF_recipes import netCDF_output_handler
+    from allocation import get_key
 
 logger = logging.getLogger(__name__)
 
@@ -68,6 +71,7 @@ datatypes = { \
 # intervals that give the periods and the corresponding adjectives
 
 intervals  = { \
+             'daily'     : 'day', \
              'weekly'    : 'week', \
              'monthly'   : 'month', \
              'yearly'    : 'year', \
@@ -99,7 +103,7 @@ class qualloc_reporting(object):
                      ]
         
         # create a list of report intervals and initialize all as None
-        self.report_intervals = ['daily_tot']
+        self.report_intervals = []
         for interval in intervals.keys():
             for statistic in statistics:
                 report_interval = '%s_%s' % (interval, statistic)
@@ -187,7 +191,7 @@ class qualloc_reporting(object):
                 vars(self)[key] = int(0)
             
             else:
-                vars(self)[key] = pcr.spatial(pcr.scalar(0))                                  
+                vars(self)[key] = pcr.spatial(pcr.scalar(0))
         
         # log the message string
         for interval in interval_list:
@@ -222,7 +226,7 @@ class qualloc_reporting(object):
                 if not isinstance(value, NoneType):
                     
                     # make the returned value a list
-                    if not isinstance(value, list):    
+                    if not isinstance(value, list):
                         value = [value]
                     
                     # and set the attribute
@@ -541,7 +545,7 @@ class qualloc_reporting(object):
                     getattr(model, forcing_variable.lower()))
         
         # groundwater variables
-        self.groundwater_recharge = model.groundwater.recharge
+        self.groundwater_recharge = model.groundwater.total_recharge
         self.groundwater_storage  = model.groundwater.storage
         
         # surface water variables
@@ -657,8 +661,7 @@ class qualloc_report_initial_conditions(object):
 qualloc_report_initial_conditions: class that can be used to report the initial \
 conditions as netCDF dependent whether they are single PCRaster fields or \
 dictionaries with the dates provided.
-
-"""    
+"""
 
     def __init__(self, model_configuration, initial_conditions, model_flags):
 
@@ -686,12 +689,6 @@ dictionaries with the dates provided.
         self.variablenames = dict((module, list(initial_conditions[module].keys())) \
                                    for module in modules)
         
-        # include remaining state variables
-        #if model_flags['groundwater_pumping_capacity_flag']:
-        #self.variablenames['water_management'] += ['groundwater_longterm_potential_withdrawal']
-        #if model_flags['surfacewater_pumping_capacity_flag']:
-        #self.variablenames['water_management'] += ['surfacewater_longterm_potential_withdrawal']
-        
         # reporting initialized
         return None
 
@@ -710,19 +707,22 @@ report: function to report recursively the initial conditions as netCDF files.
             # recreate the netCDFs files
             self.initialize_netcdfs = True
         
+        # define the date format
+        date_str = '_%s-%02d-%02d' % (date.year, date.month, date.day)
+        
         # initialize the netCDfs
         if self.initialize_netcdfs:
             
             # iterate over the variables and initialize the netCDFs
             for module, variablenames in self.variablenames.items():
-            
-                for variablename in  variablenames:
+                
+                for variablename in variablenames:
                     logger.debug('Creating netCDF output file for initial condition %s for %s' % \
                                  (variablename, module))
                     
                     # set the netCDF file name    
                     ncfilename = os.path.join(self.statespath, \
-                                              str.join('', (variablename, '.nc')))
+                                              str.join('', (variablename, date_str, '.nc')))
                     
                     # set the variable
                     self.nc_handler.initialize_nc_variable( \
@@ -741,56 +741,55 @@ report: function to report recursively the initial conditions as netCDF files.
             
             # iterate over the variables and initialize the netCDFs
             for module, variablenames in self.variablenames.items():
-            
+                
                 for variablename in  variablenames:
                     
-                    # set the netCDF file name    
+                    # set the netCDF file name
                     ncfilename = os.path.join(self.statespath, \
-                                              str.join('', (variablename, '.nc')))
-
+                                              str.join('', (variablename, date_str, '.nc')))
+                    
                     # get the value
                     if isinstance(initial_conditions[module][variablename], \
                                   dict):
-
+                        
                         # get the dates and values
                         dates = list(initial_conditions[module][variablename].keys())
                         dates.sort()
                         values = []
-                        for date in dates:
-                            values.append(initial_conditions[module][variablename][date])
-
+                        for dt in dates:
+                            values.append(initial_conditions[module][variablename][dt])
+                    
                     elif isinstance(initial_conditions[module][variablename], \
-                                  pcrFieldType):
-
+                                    pcrFieldType):
+                        
                         # get the dates and values
                         dates =  [date]
                         values = [initial_conditions[module][variablename]]
-
+                   
                     else:
                         sys.exit('initial conditions of type %s cannot be used' % \
                                  str(type(initial_conditions[module][variablename])))
-
-
+                    
                     # write the information to the netCDF file
-                    for date in dates:
+                    for dt in dates:
                         
                         # add the data
                         self.nc_handler.add_data_to_netCDF( \
                             ncfilename     = ncfilename, \
                             variablename   = variablename, \
-                            variable_array = pcr.pcr2numpy(values[dates.index(date)], \
+                            variable_array = pcr.pcr2numpy(values[dates.index(dt)], \
                                                             self.nc_handler.default_fill_value), \
                             is_timed       = variable_attr.netcdf_is_spatial[variablename], \
-                            dates          = [date], \
+                            dates          = [dt], \
                             )
-
+                    
                     # echo update
                     logger.debug('Information written for initial condition %s for %s' % \
-                                 (variablename, module))   
-
+                                 (variablename, module))
+        
         # log message
         logger.info('Reported initial conditions for %s' % date)
-                        
+        
         # returns None
         return None
         

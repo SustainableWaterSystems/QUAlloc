@@ -27,14 +27,11 @@ from __future__ import print_function
 #-extracts data from partial netCDF output via arrays
 
 #-modules
-import os, sys
+import os, sys, datetime, glob, calendar
 import time as tm
 import numpy as np
-import netCDF4 as nc
-import datetime
-import glob
-from multiprocessing import Pool
-import calendar
+import netCDF4 as nc  
+from multiprocessing import Pool 
 from dateutil.relativedelta import *
 
 # file cache to minimize/reduce opening/closing files.  
@@ -81,10 +78,7 @@ def ncFileNameDict(inputDirRoot, areas, ncFileName, fileType):
     netcdfInputDict = {}
     folder = 'states' if fileType == 'outStates' else 'netcdf'
     for key in range(1, len(areas)+1, 1):
-        if fileType == 'outWaterGap':
-            value = os.path.join(inputDirRoot, areas[key-1], folder, 'ws', ncFileName)
-        else:
-            value = os.path.join(inputDirRoot, areas[key-1], folder, ncFileName)
+        value = os.path.join(inputDirRoot, areas[key-1], folder, ncFileName)
         netcdfInputDict[key] = value
     return netcdfInputDict
 
@@ -112,19 +106,17 @@ def mergeNetCDF(inputTuple):
     
     # - netDCF output file name
     netCDFOutput = outputDir + "/" + ncName.split(".")[0] + "_" + startDate + "_to_" + endDate + ".nc"
-    
     print(netCDFOutput)
     
-    #~ ncFormat = 'NETCDF3_CLASSIC'
-    #~ ncFormat = 'NETCDF4'
+    #ncFormat = 'NETCDF3_CLASSIC'
+    #ncFormat = 'NETCDF4'
     ncFormat = inputTuple[9]
     
     # option to use zlib compression:
-    #~ using_zlib = True
-    #~ using_zlib = False               # I decide not to compress (so that we can I analyze it quickly). 
+    #using_zlib = True
+    #using_zlib = False      # 'False' allows quick analyses 
     using_zlib = inputTuple[10]
     if using_zlib == "True": using_zlib = True
-    
     
     #-set dimensions, attributes, and dimensions per netCDF input data set
     # and retrieve the resolution and definition of coordinates and calendar
@@ -184,8 +176,8 @@ def mergeNetCDF(inputTuple):
             # make sure that datetime_range values always at the last day of the year:
             for i in range(0, len(datetime_range)):
                 year_used  = datetime_range[i].year
-                month_used = 6
-                day_used   = 16
+                month_used = 12
+                day_used   = 31
                 datetime_range[i] = datetime.datetime(int(year_used), int(month_used), int(day_used), 0)
         
         if timeStepType == "single":
@@ -431,20 +423,19 @@ endDate    = str(sys.argv[5])
 netcdfList = str(sys.argv[6])
 print(netcdfList)
 netcdfList = list(set(netcdfList.split(",")))
-#if file_type == "outDailyTotNC": netcdfList = ['%s_dailyTot_output.nc'%var for var in netcdfList]
-#if file_type == "outMonthTotNC": netcdfList = ['%s_monthTot_output.nc'%var for var in netcdfList]
-#if file_type == "outMonthAvgNC": netcdfList = ['%s_monthAvg_output.nc'%var for var in netcdfList]
-#if file_type == "outMonthEndNC": netcdfList = ['%s_monthEnd_output.nc'%var for var in netcdfList]
-#if file_type == "outAnnuaTotNC": netcdfList = ['%s_annuaTot_output.nc'%var for var in netcdfList]
-#if file_type == "outAnnuaAvgNC": netcdfList = ['%s_annuaAvg_output.nc'%var for var in netcdfList]
-#if file_type == "outAnnuaEndNC": netcdfList = ['%s_annuaEnd_output.nc'%var for var in netcdfList]
-#if file_type == "outMonthMaxNC": netcdfList = ['%s_monthMax_output.nc'%var for var in netcdfList]
-#if file_type == "outAnnuaMaxNC": netcdfList = ['%s_annuaMax_output.nc'%var for var in netcdfList]
+if file_type == "outDailyTotNC": netcdfList = ['%s_dailyTot_output.nc'%var for var in netcdfList]
+if file_type == "outMonthTotNC": netcdfList = ['%s_monthTot_output.nc'%var for var in netcdfList]
+if file_type == "outMonthAvgNC": netcdfList = ['%s_monthAvg_output.nc'%var for var in netcdfList]
+if file_type == "outMonthEndNC": netcdfList = ['%s_monthEnd_output.nc'%var for var in netcdfList]
+if file_type == "outAnnuaTotNC": netcdfList = ['%s_annuaTot_output.nc'%var for var in netcdfList]
+if file_type == "outAnnuaAvgNC": netcdfList = ['%s_annuaAvg_output.nc'%var for var in netcdfList]
+if file_type == "outAnnuaEndNC": netcdfList = ['%s_annuaEnd_output.nc'%var for var in netcdfList]
+if file_type == "outMonthMaxNC": netcdfList = ['%s_monthMax_output.nc'%var for var in netcdfList]
+if file_type == "outAnnuaMaxNC": netcdfList = ['%s_annuaMax_output.nc'%var for var in netcdfList]
 
-if file_type == "outMonthTotNC": netcdfList = ['%s_monthly_tot.nc'%var for var in netcdfList]
-if file_type == "outMonthAvgNC": netcdfList = ['%s_monthly_avg.nc'%var for var in netcdfList]
+if file_type == "out_month_totNC": netcdfList = ['%s_monthly_tot.nc'%var for var in netcdfList]
+if file_type == "out_month_avgNC": netcdfList = ['%s_monthly_avg.nc'%var for var in netcdfList]
 if file_type == "outStates":     netcdfList = ['%s.nc'%var for var in netcdfList]
-if file_type == "outWaterGap":   netcdfList = ['%s.nc'%var for var in netcdfList]
 
 # netcdf format and zlib option:
 ncFormat   = str(sys.argv[7])
@@ -479,6 +470,7 @@ if sys.argv[11] == "defined":
 
 # define missing value (MV)
 using_MV = str(sys.argv[12])
+
 # for testing, we use only a single core
 #mergeNetCDF((netcdfList[0], latMin, latMax, lonMin, lonMax, deltaLat, deltaLon, startDate, endDate, ncFormat, using_zlib, using_MV, file_type))
 

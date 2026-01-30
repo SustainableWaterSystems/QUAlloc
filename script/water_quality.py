@@ -3,11 +3,17 @@
 ###########
 # modules #
 ###########
-import logging
+import logging, datetime
 import pcraster as pcr
-from model_time      import match_date_by_julian_number, get_weights_from_dates
-from basic_functions import pcr_return_val_div_zero, sum_list, max_dicts
-from allocation      import get_zonal_total
+
+try:
+    from .model_time      import match_date_by_julian_number, get_weights_from_dates, is_last_day_month
+    from .basic_functions import pcr_return_val_div_zero, sum_list, max_dicts
+    from .allocation      import get_zonal_total
+except:
+    from model_time      import match_date_by_julian_number, get_weights_from_dates, is_last_day_month
+    from basic_functions import pcr_return_val_div_zero, sum_list, max_dicts
+    from allocation      import get_zonal_total
 
 ####################
 # global variables #
@@ -131,7 +137,7 @@ class water_quality(object):
         '''
         
         # log message
-        logger.info('Total water quality over a year updated')
+        logger.info('annual water quality over a year updated')
 
         # update the long-term total values
         for source_name in source_names:
@@ -167,8 +173,15 @@ class water_quality(object):
                                        ):
         
         # set the message string to log the information
-        message_str = 'Long-term water quality for %s at %s level.' % \
+        message_str = 'long-term water quality for %s at %s level.' % \
                       (date, self.time_increment)
+        
+        # initialize the monthly average water quality states
+        for source_name in source_names:
+            for constituent_name in self.constituent_names:
+                setattr(self, \
+                        'average_%s_%s' % (source_name,constituent_name), \
+                        pcr.spatial(pcr.scalar(0)))
         
         # initialize dictionary with long-term water quality states
         constituent_longterm_states = {}
@@ -200,7 +213,7 @@ class water_quality(object):
                                                (message_str, sub_message_str))
                     
                     elif self.time_increment == 'yearly':
-                        # set the long-term total water quality
+                        # set the long-term annual water quality
                         var_str = '%s_annual_%s' % (source_name, constituent_name)
                         constituent_state = getattr(self, var_str)
                 
@@ -219,47 +232,73 @@ class water_quality(object):
 
 
 
-    def update_longterm_quality_for_date(self, \
-                                          source_names, \
-                                          date):
+    def update_longterm_quality(self, \
+                                source_names, \
+                                time_step, \
+                                date):
         '''
-        update_longterm_quality_for_date: 
+        update_longterm_quality: 
                                   function that updates the quality
                                   per zone as a function of the date.
         '''
         
+        # accumulate the water quality over the month per source and constituent
+        # (units: mg/L, oC, cfu/100mL)
         for source_name in source_names:
             for constituent_name in self.constituent_names:
-                
-                # get key
-                var = '%s_longterm_%s' % (source_name, constituent_name)
-                
-                # get the time step to update the long-term quality (monthly)
-                dates = getattr(self, var+'_dates')
-                date_index, matched_date, message_str = \
-                                    match_date_by_julian_number(date, dates)
-                
-                # remove the date from the dictionary and update it with the present value
-                # set the value using the weight, if the long-term availability is not
-                # defined, cover with the present value
-                constituent_longterm_quality = getattr(self, var).pop(matched_date)
-                constituent_longterm_quality = \
-                    pcr.cover( self.quality_update_weight[source_name]      * self.constituent_shortterm_quality[source_name][constituent_name] + \
-                              (1 - self.quality_update_weight[source_name]) * constituent_longterm_quality, \
-                              self.constituent_shortterm_quality[source_name][constituent_name])
-                
-                # reset the date
-                getattr(self, var+'_dates')[date_index] = date
-                
-                # add the value to the dictionary
-                getattr(self, var)[date] = constituent_longterm_quality
-                
-                # echo to screen
-                message_str = str.join(' ', \
-                                       ('%s from %s availability updated for' \
-                                        % (constituent_name, source_name), \
-                                        message_str))
-                logger.debug(message_str)
+                key = 'average_%s_%s'    % (source_name, constituent_name)
+                average  = getattr(self, key)
+                average += self.constituent_shortterm_quality\
+                                           [source_name][constituent_name]
+                setattr(self, key, average)
+        
+        # update long-term water quality constituents the last day of the month
+        if (time_step == 'monthly') or \
+           (time_step == 'daily' and is_last_day_month(date)):
+            
+            # get number of steps within the time-step
+            #    - number of days in the month if time-step == daily
+            #    - unity if time-step == monthly
+            steps = date.day
+            
+            # evaluate per source and constituent
+            for source_name in source_names:
+                for constituent_name in self.constituent_names:
+                    # get the monthly average water availability
+                    # by dividing the accumulated values over the number steps
+                    key = 'average_%s_%s' % (source_name, constituent_name)
+                    average_constituent_quality = getattr(self, key) / steps
+                    
+                    # get variable key
+                    var = '%s_longterm_%s' % (source_name, constituent_name)
+                    
+                    # get the time step to update the long-term quality (monthly)
+                    update_date = datetime.datetime(date.year, date.month, 1)
+                    var_dates = getattr(self, var+'_dates')
+                    date_index, matched_date, message_str = \
+                                        match_date_by_julian_number(update_date, var_dates)
+                    
+                    # remove the date from the dictionary and update it with the present value
+                    # set the value using the weight, if the long-term availability is not
+                    # defined, cover with the present value
+                    constituent_longterm_quality = getattr(self, var).pop(matched_date)
+                    constituent_longterm_quality = \
+                        pcr.cover( self.quality_update_weight[source_name]      * average_constituent_quality + \
+                                  (1 - self.quality_update_weight[source_name]) * constituent_longterm_quality, \
+                                  average_constituent_quality)
+                    
+                    # reset the date
+                    getattr(self, var+'_dates')[date_index] = update_date
+                    
+                    # add the value to the dictionary
+                    getattr(self, var)[update_date] = constituent_longterm_quality
+                    
+                    # echo to screen
+                    message_str = str.join(' ', \
+                                           ('%s from %s availability updated for' \
+                                            % (constituent_name, source_name), \
+                                            message_str))
+                    logger.debug(message_str)
         
         # returns None
         return None

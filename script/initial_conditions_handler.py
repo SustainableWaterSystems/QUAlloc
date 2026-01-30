@@ -23,9 +23,14 @@ from copy import deepcopy
 
 # specific packages
 # only file handler is required
-from model_time     import match_date_by_julian_number
-from netCDF_recipes import get_nc_dates
-from file_handler   import file_is_nc, compose_filename, read_file_entry
+try:
+    from .model_time     import match_date_by_julian_number
+    from .netCDF_recipes import get_nc_dates
+    from .file_handler   import file_is_nc, compose_filename, read_file_entry
+except:
+    from model_time     import match_date_by_julian_number
+    from netCDF_recipes import get_nc_dates
+    from file_handler   import file_is_nc, compose_filename, read_file_entry
 
 ########
 # TODO #
@@ -101,8 +106,10 @@ def test_timed_netcdf(filename, path = '', \
     # return the output
     return timed_netcdf, nc_dates
 
-def get_initial_conditions (model_configuration, date, \
-                 ini_identifiers = ['_ini'], sections_to_exclude = []):
+def get_initial_conditions (model_configuration, \
+                            date, \
+                            ini_identifiers = ['_ini'], \
+                            files_to_exclude = []):
 
     '''
 
@@ -114,7 +121,7 @@ appropriate key and value pairs.
 
     Input:
     ======
-    model_configuration:    class holding all the information that was parsed
+    model_configuration    : class holding all the information that was parsed
                             from the configuration file that are organized as
                             dictionaries with key, value pairs; values are
                             strings that can refer to files with spatio-
@@ -124,11 +131,13 @@ appropriate key and value pairs.
     date:                   start date of the simulation which is used to find,
                             if relevant, the necessary temporal information in
                             the file;
-    ini_identifiers:        list of possible suffixes identifying spinup values
+    ini_identifiers        : list of possible suffixes identifying spinup values
                             in the model configuration object; input is optional
                             and the default identifier is '_ini', which should
                             be added to the key identifier, e.g. 
                             soil_moisture_ini.
+    files_to_exclude       : list of files in the configuration file that must
+                            be disregarded as initial conditions will be not be used
 
     Output:
     =======
@@ -154,19 +163,21 @@ appropriate key and value pairs.
     for section_name, section_info in vars(model_configuration).items():
 
         # process if this is a dictionary
-        if isinstance(section_info, dict) and not section_name in sections_to_exclude:
+        if isinstance(section_info, dict):
             
             # get the key value pair and process if it is identified as an
             # initial setting
             for key, entry in section_info.items():
                 
                 # check if an initial conditions is specified
-                if len(key) > 4:
+                if len(key) > 4 and key not in files_to_exclude:
                     
                     # get suffix and variable name
                     suffix = key[-4:]
                     if suffix in ini_identifiers:
                         
+                        # variable name in the netcdf is the same as the
+                        # variable name in the configuration file
                         variablename = key[:-4]
                         
                         # if not included, add the section name to the
